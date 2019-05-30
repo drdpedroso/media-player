@@ -56,7 +56,8 @@ window.onload = function () {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         const ctx = canvas.getContext('2d');
-
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
 
         const context = new AudioContext();
         const src = context.createMediaElementSource(audio);
@@ -65,37 +66,33 @@ window.onload = function () {
         src.connect(analyser);
         analyser.connect(context.destination);
 
-        analyser.fftSize = 8192;
+        analyser.fftSize = 8192; // increase this value for thiner columns
 
         const bufferLength = analyser.frequencyBinCount;
 
         const dataArray = new Uint8Array(bufferLength);
-        const WIDTH = canvas.width;
-        const HEIGHT = canvas.height;
 
-        const barWidth = (WIDTH / bufferLength) * 15;
+        const barWidth = (canvasWidth / bufferLength) * 15;
 
         function renderFrame() {
-            requestAnimationFrame(renderFrame); // Takes callback function to invoke before rendering
-
-            let x = 0;
-
+            requestAnimationFrame(renderFrame);
             analyser.getByteFrequencyData(dataArray); // Results in a normalized array of values between 0 and 255
 
             clearCanvas(ctx);
-            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
             const bars = Array.from({length: 120}); // Create empty array with 120 positions
 
+            let spaceBetween = 0;
             bars.forEach((bar, i) => {
                 const barHeight = (dataArray[i] * 2);
 
                 const {r, g, b} = getColorBaseOnDataArray(dataArray[i]);
 
                 ctx.fillStyle = `rgb(${r},${g},${b})`;
-                ctx.fillRect(x, (HEIGHT - barHeight), barWidth, barHeight);
+                ctx.fillRect(spaceBetween, (canvasHeight - barHeight), barWidth, barHeight);
 
-                x += barWidth + 10 // Gives 10px space between each bar
+                spaceBetween += barWidth + 10 // Gives 10px space between each bar
             })
         }
 
